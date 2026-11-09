@@ -673,7 +673,15 @@ export default function App() {
                             : "Private conversation"}
                         </small>
                       </div>
-                      <div style={{ position: "relative", marginLeft: "auto" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-end",
+                          alignSelf: "stretch",
+                          marginLeft: "auto",
+                        }}
+                      >
                         <button
                           className="more"
                           type="button"
@@ -688,13 +696,12 @@ export default function App() {
                         {showConvMenu && (
                           <div
                             style={{
-                              position: "absolute",
-                              right: 0,
-                              top: "calc(100% + 8px)",
-                              zIndex: 20,
+                              position: "static",
                               width: 230,
+                              maxWidth: "min(230px, calc(100vw - 32px))",
                               maxHeight: 280,
                               overflowY: "auto",
+                              marginTop: 8,
                               padding: 14,
                               background: "#fff",
                               border: "1px solid #e8eaf2",
