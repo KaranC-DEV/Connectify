@@ -2068,3 +2068,37 @@ nav button:hover::after {
     transform: none !important;
   }
 }
+
+/* Connectify: stabilize message composer click area */
+
+.composer {
+  position: relative;
+  z-index: 5;
+  transform: none !important;
+  perspective: none !important;
+}
+
+.composer:focus-within {
+  transform: none !important;
+}
+
+.write {
+  position: relative;
+  z-index: 6;
+}
+
+.write button {
+  position: relative;
+  z-index: 7;
+  flex-shrink: 0;
+  transform: none !important;
+  perspective: none !important;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.write button:hover,
+.write button:active {
+  transform: none !important;
+}
+  
