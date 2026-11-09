@@ -227,50 +227,45 @@ export default function App() {
       .finally(() => setBoot(false));
   }, []);
   async function refresh() {
-  try {
-    const [a, b, c] = await Promise.all([
-      chats.all(),
-      users.connections(),
-      requests.received(),
-    ]);
+    try {
+      const [a, b, c] = await Promise.all([
+        chats.all(),
+        users.connections(),
+        requests.received(),
+      ]);
 
-    // Update conversations, connections and incoming requests
-    setConvos(a || []);
-    setPeople(b || []);
-    setIncoming(c || []);
+      // Update conversations, connections and incoming requests
+      setConvos(a || []);
+      setPeople(b || []);
+      setIncoming(c || []);
 
-    // Restore the previously selected conversation
-    if (a?.length) {
-      const savedChatId = localStorage.getItem(
-        "connectify_selected_chat"
-      );
+      // Restore the previously selected conversation
+      if (a?.length) {
+        const savedChatId = localStorage.getItem("connectify_selected_chat");
 
-      const savedChat = a.find(
-        (chat) => String(chat.id) === savedChatId
-      );
+        const savedChat = a.find((chat) => String(chat.id) === savedChatId);
 
-      // Open saved conversation, or first conversation if unavailable
-      const chatToSelect = savedChat || a[0];
+        // Open saved conversation, or first conversation if unavailable
+        const chatToSelect = savedChat || a[0];
 
-      setSelected(chatToSelect);
+        setSelected(chatToSelect);
 
-      // Update storage in case the previous conversation no longer exists
-      if (!savedChat) {
-        localStorage.setItem(
-          "connectify_selected_chat",
-          String(chatToSelect.id)
-        );
+        // Update storage in case the previous conversation no longer exists
+        if (!savedChat) {
+          localStorage.setItem(
+            "connectify_selected_chat",
+            String(chatToSelect.id),
+          );
+        }
+      } else {
+        // No conversations available
+        setSelected(null);
+        localStorage.removeItem("connectify_selected_chat");
       }
-    } else {
-      // No conversations available
-      setSelected(null);
-      localStorage.removeItem("connectify_selected_chat");
+    } catch (e) {
+      notify(e.message);
     }
-
-  } catch (e) {
-    notify(e.message);
   }
-}
   useEffect(() => {
     if (!user) return;
     refresh();
@@ -324,22 +319,19 @@ export default function App() {
       notify(e.message);
     }
   }
-  async function send(e) {
+
+  function send(e) {
     e.preventDefault();
 
-    console.log("SEND BUTTON CLICKED");
-    console.log("Draft:", draft);
-    console.log("Selected conversation:", selected?.id);
-    console.log("STOMP connected:", client.current?.connected);
+    const content = draft.trim();
 
-    if (!draft.trim() || !selected) return;
+    if (!content || !selected) return;
 
     if (!client.current?.connected) {
-      console.error("STOMP client is not connected");
+      console.warn("WebSocket is not connected. Message not sent.");
+      notify("Connection interrupted. Please try again.");
       return;
     }
-
-    const content = draft.trim();
 
     try {
       client.current.publish({
@@ -347,13 +339,14 @@ export default function App() {
         body: JSON.stringify({ content }),
       });
 
-      console.log("MESSAGE PUBLISHED:", content);
       setDraft("");
       setShowEmojiPicker(false);
     } catch (error) {
       console.error("PUBLISH ERROR:", error);
+      notify("Unable to send message. Please try again.");
     }
   }
+
   async function deleteMessage(message) {
     if (!message?.id) {
       notify("This message cannot be deleted because it has no ID.");
@@ -929,7 +922,13 @@ export default function App() {
                           placeholder={`Message ${title}…`}
                         />
                         <button
-                          disabled={!draft.trim() || status !== "connected"}
+                          type="submit"
+                          disabled={
+                            !draft.trim() ||
+                            !selected ||
+                            !client.current?.connected
+                          }
+                          title="Send message"
                         >
                           <Send />
                         </button>
